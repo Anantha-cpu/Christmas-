@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scratch Card Invitation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden; /* Prevent scrolling during celebration */
+    }
+    .scratch-container {
+      position: relative;
+      width: 300px;
+      height: 200px;
+      background-color: #292e09;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .scratch-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('invitation_image.png'); /* Replace with your actual image */
+      background-size: cover;
+      z-index: 1;
+      opacity: 0; /* Initially hidden */
+      transition: opacity 0.5s ease-out; /* Smooth transition for opacity */
+      
+    }
+    .scratch-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 0, 60, 0.952);
+      z-index: 2;
+      cursor: pointer;
+    }
+    .scratch-overlay canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 3;
+    }
+
+    /* Popup for full image */
+    .popup-overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8) rotate(10deg); /* Start with small scale and rotation */
+      width: 80%;
+      height: 80%;
+      background-image: url('invitation_image.png'); /* Replace with your actual image */
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      opacity: 0; /* Initially invisible */
+      transition: opacity 1s ease-out, transform 1s ease-in-out; /* Elastic transition */
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Celebration effect for confetti */
+    .confetti {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 30px;
+      height: 30px;
+      background-color: #ff0;
+      border-radius: 50%;
+      animation: confettiAnimation 3s infinite;
+      z-index: 200;
+    }
+    @keyframes confettiAnimation {
+      0% {
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(100px, 100px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* Shine effect on the invitation card */
+    @keyframes shineEffect {
+      0% {
+        background: rgba(255, 255, 255, 0);
+      }
+      50% {
+        background: rgba(221, 15, 15, 0.5);
+      }
+      100% {
+        background: rgba(255, 255, 255, 0);
+      }
+    }
+
+    .shine {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0);
+      animation: shineEffect 2s ease-out;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="scratch-container">
+  <div class="scratch-image"></div> <!-- Hidden image to reveal -->
+  <div class="scratch-overlay">
+    <canvas id="scratchCanvas"></canvas> <!-- Scratchable overlay -->
+  </div>
+</div>
+
+<!-- Popup for full image -->
+<div class="popup-overlay" id="popupOverlay">
+  <div class="shine"></div> <!-- Shine effect -->
+</div>
+
+<script>
+  const canvas = document.getElementById('scratchCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 300;
+  canvas.height = 200;
+
+  ctx.fillStyle = 'gray'; // Cover layer
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  let isMouseDown = false;
+  let scratchCount = 0;
+  const scratchThreshold = 2; // Trigger threshold for revealing the full image
+
+  // Celebration effect (confetti) generation
+  function generateConfetti() {
+    let confettiCount = 20;
+    for (let i = 0; i < confettiCount; i++) {
+      let confetti = document.createElement('div');
+      confetti.classList.add('confetti');
+      confetti.style.left = `${Math.random() * window.innerWidth}px`;
+      confetti.style.animationDuration = `${Math.random() * 2 + 2}s`; // Random animation duration
+      document.body.appendChild(confetti);
+      setTimeout(() => {
+        confetti.remove(); // Remove confetti after animation
+      }, 2000);
+    }
+  }
+
+  // Function to check the scratch progress
+  function calculateScratchProgress() {
+    scratchCount++;
+
+    if (scratchCount >= scratchThreshold) {
+      // Hide the scratch overlay
+      document.querySelector('.scratch-overlay').style.display = 'none';
+      // Reveal the invitation card with pop-up animation (Elastic)
+      const popup = document.getElementById('popupOverlay');
+      popup.style.display = 'flex'; // Show the popup
+      popup.style.opacity = 1; // Fade in
+      popup.style.transform = 'translate(-50%, -50%) scale(1) rotate(0deg)'; // Elastic effect, scale and rotate reset
+
+      // Trigger the celebration effects
+      generateConfetti();
+    }
+  }
+
+  // Detect scratch start (mouse down)
+  canvas.addEventListener('mousedown', (e) => {
+    isMouseDown = true;
+    scratch(e);
+  });
+
+  // Detect mouse movement (scratching)
+  canvas.addEventListener('mousemove', (e) => {
+    if (isMouseDown) {
+      scratch(e);
+    }
+  });
+
+  // Detect mouse up (end of scratch)
+  canvas.addEventListener('mouseup', () => {
+    isMouseDown = false;
+  });
+
+  // Scratch function to progressively remove the overlay
+  function scratch(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 20, 0, Math.PI * 2, false);
+    ctx.fill();
+
+    // After each scratch, check if the image should be revealed
+    calculateScratchProgress();
+  }
+</script>
+
+</body>
+</html>
