@@ -34,7 +34,6 @@
       z-index: 1;
       opacity: 0; /* Initially hidden */
       transition: opacity 0.5s ease-out; /* Smooth transition for opacity */
-      
     }
     .scratch-overlay {
       position: absolute;
@@ -51,6 +50,20 @@
       top: 0;
       left: 0;
       z-index: 3;
+    }
+
+    /* Static Text Layer */
+    .static-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%); /* Centers the text */
+      font-size: 20px;
+      color: white;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+      z-index: 4; /* Ensure it's on top of the card, but behind the scratchable overlay */
+      pointer-events: none; /* Prevent interference with the scratchable overlay */
     }
 
     /* Popup for full image */
@@ -121,11 +134,19 @@
       animation: shineEffect 2s ease-out;
       pointer-events: none;
     }
+    .static-text {
+      color: chartreuse;
+    }
   </style>
 </head>
 <body>
 
 <div class="scratch-container">
+  <!-- Static text overlay -->
+  <div class="static-text">Double Tap
+    <span class="hand-tap">👆</span>
+  </div>
+  
   <div class="scratch-image"></div> <!-- Hidden image to reveal -->
   <div class="scratch-overlay">
     <canvas id="scratchCanvas"></canvas> <!-- Scratchable overlay -->
